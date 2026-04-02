@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Chatbot</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0f172a;
+            font-family: Arial;
+        }
+
+        .container {
+            width: 400px;
+            height: 90vh;
+            background: #1e293b;
+            border-radius: 10px;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #38bdf8;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            color: white;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message {
+            margin: 8px 0;
+        }
+
+        .user {
+            text-align: right;
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+
+        .bot {
+            text-align: left;
+            color: #22c55e;
+            margin-bottom: 10px;
+        }
+
+        .input-box {
+            display: flex;
+            border-top: 1px solid #444;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+        }
+
+        button {
+            padding: 10px;
+            background: #38bdf8;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: gray;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">AI Chatbot</div>
+
+    <div id="chat-box" class="chat-box"></div>
+
+    <div class="input-box">
+        <input id="user-input" placeholder="Ask something..." />
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+let loading = false;
+
+async function sendMessage() {
+    if (loading) return;
+
+    const input = document.getElementById("user-input");
+    const button = document.getElementById("send-btn");
+    const chatBox = document.getElementById("chat-box");
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    // Show user message
+    chatBox.innerHTML += `<div class="message user">You: ${message}</div>`;
+
+    input.value = "";
+    loading = true;
+    button.disabled = true;
+
+    try {
+        const res = await fetch("/ask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({question: message})
+        });
+
+        const data = await res.json();
+
+        chatBox.innerHTML += `<div class="message bot">Bot: ${data.answer}</div>`;
+    } catch (e) {
+        chatBox.innerHTML += `<div class="message bot">Error occurred</div>`;
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+    loading = false;
+    button.disabled = false;
+}
+
+// ENTER key support
+document.getElementById("user-input").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        sendMessage();
+    }
+});
+</script>
+
+</body>
+</html>
